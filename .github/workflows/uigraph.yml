@@ -23,9 +23,6 @@ jobs:
 
       - name: Dry run on pull request
         if: github.event_name == 'pull_request'
-        env:
-          UIGRAPH_TOKEN: ${{ secrets.UIGRAPH_TOKEN }}
-          UIGRAPH_GATEWAY_URL: ${{ secrets.UIGRAPH_GATEWAY_URL }}
         run: uigraph-cli sync --dry-run
 
       - name: Sync on master
