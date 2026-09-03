@@ -6,7 +6,7 @@ sequenceDiagram
 
   sender->>sender: Build multipart body, measure length
   sender->>+receiver: GET /token/{size}
-  receiver-->>-sender: Signed token, valid 3s
+  receiver-->>-sender: Signed token, valid 30s
 
   sender->>+receiver: POST /upload with Authorization
 

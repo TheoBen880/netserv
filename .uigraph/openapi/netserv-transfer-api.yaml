@@ -12,7 +12,7 @@ info:
     then replays that token on the upload. The upload gate in `server/get/app.ts`
     rejects the request when the content type is not multipart, the token is
     missing, the token's IP does not match the caller, or the token's size does
-    not match `Content-Length`. Tokens expire three seconds after issue.
+    not match `Content-Length`. Tokens expire thirty seconds after issue.
 
     The server binds one listener per detected IPv4 interface, choosing a free
     port from 8080 upwards via portfinder, so the port is not fixed.
@@ -33,7 +33,7 @@ paths:
       summary: Issue a short-lived upload token
       description: |
         Signs a token carrying the caller's IP and the declared payload size. The
-        token is valid for three seconds and must be replayed verbatim in the
+        token is valid for thirty seconds and must be replayed verbatim in the
         `Authorization` header of the upload.
       parameters:
         - name: size

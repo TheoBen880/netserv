@@ -171,7 +171,7 @@ testPacks:
         apiGroupName: netserv-transfer-api
         operationId: uploadStream
         expectedStatusCode: 403
-      - title: Token is refused after its three second lifetime
+      - title: Token is refused after its thirty second lifetime
         type: manual
         order: 6
         priority: p2

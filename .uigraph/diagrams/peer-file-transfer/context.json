@@ -16,7 +16,7 @@
           "type": "Text Input",
           "value": "portfinder from 8080, one listener per IPv4 interface"
         },
-        "Token Lifetime": { "type": "Text Input", "value": "3s" },
+        "Token Lifetime": { "type": "Text Input", "value": "30s" },
         "Token Binds": { "type": "Tag Input", "value": ["caller IP", "byte size"] }
       }
     },
