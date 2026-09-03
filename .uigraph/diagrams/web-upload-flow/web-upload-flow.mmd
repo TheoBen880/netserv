@@ -1,0 +1,11 @@
+flowchart TD
+  ui[React Home UI] --> drop[Upload modal / drag drop]
+  drop --> form[Build multipart payload]
+  form --> api[POST /api/upload]
+  api --> multer[Multer memory parser]
+  multer --> parsed[Decoded multipart]
+  parsed --> conflict{Exists and no force}
+  conflict -->|yes| r400[400 File already exists]
+  conflict -->|no| mkdir[Create missing directories]
+  mkdir --> write[Write buffer to disk]
+  write --> ok[200 success]

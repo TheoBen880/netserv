@@ -1,0 +1,82 @@
+{
+  "nodes": {
+    "bin": {
+      "name": "netserv CLI",
+      "data": {
+        "Source": { "type": "Text Input", "value": "dist/server/index.js" },
+        "Command": { "type": "Text Input", "value": "node dist/server/index.js" }
+      }
+    },
+    "arg": {
+      "name": "Command dispatcher",
+      "data": {
+        "Source": { "type": "Text Input", "value": "server/arg.ts" },
+        "Library": { "type": "Text Input", "value": "noarg" }
+      }
+    },
+    "web": {
+      "name": "Web server command",
+      "data": {
+        "Source": { "type": "Text Input", "value": "server/web/index.ts" },
+        "Flags": {
+          "type": "Tag Input",
+          "value": ["Target Dir", "password", "host", "port", "qr", "writable"]
+        },
+        "Default Port": { "type": "Number Input", "value": 8000 }
+      }
+    },
+    "ftp": {
+      "name": "FTP server command",
+      "data": {
+        "Source": { "type": "Text Input", "value": "server/ftp/index.ts" },
+        "Flags": {
+          "type": "Tag Input",
+          "value": ["host", "port", "username", "password", "root"]
+        },
+        "Default Port": { "type": "Number Input", "value": 2221 }
+      }
+    },
+    "get": {
+      "name": "Get receiver command",
+      "data": {
+        "Source": { "type": "Text Input", "value": "server/get/index.ts" },
+        "Flags": { "type": "Tag Input", "value": ["output", "code"] }
+      }
+    },
+    "send": {
+      "name": "Send uploader command",
+      "data": {
+        "Source": { "type": "Text Input", "value": "server/send/index.ts" },
+        "Arguments": { "type": "Tag Input", "value": ["host", "port", "target"] }
+      }
+    },
+    "webServe": {
+      "name": "Express web server",
+      "data": {
+        "Binds": { "type": "Text Input", "value": "One listen call per IPv4 interface" },
+        "QR": { "type": "Text Input", "value": "Terminal QR code when --qr (default)" }
+      }
+    },
+    "ftpServe": {
+      "name": "ftp-srv instance",
+      "data": {
+        "Binds": { "type": "Text Input", "value": "Every IPv4 interface when no --host" },
+        "Mode": { "type": "Text Input", "value": "Anonymous without credentials" }
+      }
+    },
+    "getServer": {
+      "name": "Upload receiver",
+      "data": {
+        "Listen": { "type": "Text Input", "value": "portfinder from 8080" },
+        "Output": { "type": "Text Input", "value": "Config output directory" }
+      }
+    },
+    "sendUpload": {
+      "name": "Multipart uploader",
+      "data": {
+        "Body": { "type": "Text Input", "value": "Multipart with file read streams" },
+        "Token": { "type": "Text Input", "value": "Fetched from GET /token/{size}" }
+      }
+    }
+  }
+}

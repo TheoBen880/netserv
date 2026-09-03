@@ -36,6 +36,21 @@ architectureDiagrams:
   - name: Peer File Transfer
     path: .uigraph/diagrams/peer-file-transfer/peer-file-transfer.mmd
     contextPath: .uigraph/diagrams/peer-file-transfer/context.json
+  - name: CLI Command Dispatch
+    path: .uigraph/diagrams/cli-command-dispatch/cli-command-dispatch.mmd
+    contextPath: .uigraph/diagrams/cli-command-dispatch/context.json
+  - name: FTP Server Flow
+    path: .uigraph/diagrams/ftp-server-flow/ftp-server-flow.mmd
+    contextPath: .uigraph/diagrams/ftp-server-flow/context.json
+  - name: Web Auth and Session
+    path: .uigraph/diagrams/web-auth-session/web-auth-session.mmd
+    contextPath: .uigraph/diagrams/web-auth-session/context.json
+  - name: Web Upload Flow
+    path: .uigraph/diagrams/web-upload-flow/web-upload-flow.mmd
+    contextPath: .uigraph/diagrams/web-upload-flow/context.json
+  - name: Build and Package Pipeline
+    path: .uigraph/diagrams/build-package-pipeline/build-package-pipeline.mmd
+    contextPath: .uigraph/diagrams/build-package-pipeline/context.json
 
 docs:
   - name: CLI Commands

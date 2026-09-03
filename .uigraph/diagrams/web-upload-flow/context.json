@@ -1,0 +1,83 @@
+{
+  "nodes": {
+    "ui": {
+      "name": "React Home UI",
+      "data": {
+        "Source": { "type": "Text Input", "value": "web/features/Home" },
+        "Parts": {
+          "type": "Tag Input",
+          "value": ["UploadModal", "useFileDrop", "ContentGrid"]
+        }
+      }
+    },
+    "drop": {
+      "name": "Upload modal / drag drop",
+      "data": {
+        "Actions": { "type": "Text Input", "value": "Picks files and posts multipart" }
+      }
+    },
+    "form": {
+      "name": "Build multipart payload",
+      "data": {
+        "Fields": { "type": "Tag Input", "value": ["file", "path", "force"] }
+      }
+    },
+    "api": {
+      "name": "Upload route",
+      "data": {
+        "Path": { "type": "Text Input", "value": "POST /api/upload" },
+        "Mount": { "type": "Text Input", "value": "Only with --writable" }
+      }
+    },
+    "multer": {
+      "name": "Multer memory parser",
+      "data": {
+        "Storage": { "type": "Text Input", "value": "In-memory buffer" },
+        "Field": { "type": "Text Input", "value": "single(file)" }
+      }
+    },
+    "parsed": {
+      "name": "Decoded multipart",
+      "data": {
+        "Fields": { "type": "Text Input", "value": "req.body.path and req.body.force" }
+      }
+    },
+    "conflict": {
+      "name": "Exists and no force",
+      "type": "shape",
+      "shape": "diamond",
+      "data": {
+        "Gate": { "type": "Text Input", "value": "force === 'false' and existing path" }
+      }
+    },
+    "r400": {
+      "name": "400 File already exists",
+      "data": {
+        "Body": { "type": "Text Input", "value": "{ error: 'File already exists' }" }
+      }
+    },
+    "mkdir": {
+      "name": "Create missing directories",
+      "data": {
+        "Recursive": { "type": "Text Input", "value": "mkdirSync(recursive: true)" }
+      }
+    },
+    "write": {
+      "name": "Write buffer to disk",
+      "data": {
+        "Destination": { "type": "Text Input", "value": "path.join(root, req.path, body.path)" },
+        "Method": { "type": "Text Input", "value": "writeFileSync with req.file.buffer" }
+      }
+    },
+    "ok": {
+      "name": "200 success",
+      "data": {
+        "Body": { "type": "Text Input", "value": "{ success: true }" }
+      }
+    }
+  },
+  "edges": {
+    "conflict-r400": { "label": "yes" },
+    "conflict-mkdir": { "label": "no" }
+  }
+}

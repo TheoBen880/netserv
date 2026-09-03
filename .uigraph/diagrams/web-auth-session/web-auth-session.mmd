@@ -1,0 +1,12 @@
+flowchart TD
+  browser[Browser] --> authRouter[/auth router/]
+  browser --> guard{checkAuthMiddleware}
+  authRouter --> login{POST /auth/login}
+  login -->|empty or wrong| login401[401 Invalid password]
+  login -->|correct| issue[Issue token and cookie]
+  authRouter --> init{GET /auth/init}
+  init -->|valid cookie| rotate[Rotate token and cookie]
+  init -->|invalid| clear[Clear token and cookie]
+  guard -->|password mode off| open[Allow request]
+  guard -->|no or invalid cookie| guard401[401 No/invalid JWT]
+  guard -->|valid| api[/api router/]
