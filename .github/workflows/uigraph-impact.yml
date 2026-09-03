@@ -1,0 +1,39 @@
+name: UIGraph Impact
+
+on:
+  pull_request:
+    branches: [master]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  impact:
+    name: Report change impact
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Analyse impact
+        env:
+          AI_PROVIDER_MODEL: ${{ secrets.AI_PROVIDER_MODEL }}
+          AI_PROVIDER_API_URL: ${{ secrets.AI_PROVIDER_API_URL }}
+          AI_PROVIDER_API_KEY: ${{ secrets.AI_PROVIDER_API_KEY }}
+          UIGRAPH_TOKEN: ${{ secrets.UIGRAPH_TOKEN }}
+        run: |
+          npx @uigraph/agents@0.0.12 impact \
+            --enterprise \
+            --target "$(git merge-base origin/${{ github.base_ref }} HEAD)" \
+            --report impact-report.md
+
+      - uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          path: impact-report.md
