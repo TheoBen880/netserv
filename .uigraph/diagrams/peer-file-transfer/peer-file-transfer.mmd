@@ -1,0 +1,25 @@
+sequenceDiagram
+  autonumber
+  participant sender as netserv send
+  participant receiver as netserv get
+  participant disk as Output directory
+
+  sender->>sender: Build multipart body, measure length
+  sender->>+receiver: GET /token/{size}
+  receiver-->>-sender: Signed token, valid 3s
+
+  sender->>+receiver: POST /upload with Authorization
+
+  alt Gate passes
+    receiver->>receiver: Parse stream with busboy
+    receiver->>disk: Pipe each part to a write stream
+    receiver-->>-sender: 200, empty body
+  else Not multipart or size mismatch
+    receiver-->>sender: 400
+  else Missing token
+    receiver-->>sender: 401
+  else IP mismatch
+    receiver-->>sender: 403
+  end
+
+  Note over sender,receiver: Both sides render a progress bar

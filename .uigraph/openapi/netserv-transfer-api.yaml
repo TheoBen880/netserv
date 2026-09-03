@@ -1,0 +1,102 @@
+openapi: 3.0.3
+
+info:
+  title: netserv Transfer API
+  version: 3.0.19
+  description: |
+    HTTP API exposed by `netserv get`, the receiving half of the peer-to-peer
+    transfer pair. `netserv send <host> <port> <target...>` is the client.
+
+    The handshake is deliberately narrow: the sender asks for a token that is
+    bound to its own IP address and to the exact byte length it is about to send,
+    then replays that token on the upload. The upload gate in `server/get/app.ts`
+    rejects the request when the content type is not multipart, the token is
+    missing, the token's IP does not match the caller, or the token's size does
+    not match `Content-Length`. Tokens expire three seconds after issue.
+
+    The server binds one listener per detected IPv4 interface, choosing a free
+    port from 8080 upwards via portfinder, so the port is not fixed.
+
+servers:
+  - url: http://{host}:{port}
+    description: netserv get server, bound to each detected IPv4 interface
+    variables:
+      host:
+        default: localhost
+      port:
+        default: '8080'
+
+paths:
+  /token/{size}:
+    get:
+      operationId: createUploadToken
+      summary: Issue a short-lived upload token
+      description: |
+        Signs a token carrying the caller's IP and the declared payload size. The
+        token is valid for three seconds and must be replayed verbatim in the
+        `Authorization` header of the upload.
+      parameters:
+        - name: size
+          in: path
+          required: true
+          description: Exact byte length the sender will transmit as `Content-Length`
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: A signed upload token
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [token, message]
+                properties:
+                  token:
+                    type: string
+                  message:
+                    type: string
+                    example: Token will expire in 3 seconds
+
+  /upload:
+    post:
+      operationId: uploadStream
+      summary: Stream one or more files to the receiver
+      description: |
+        The multipart body is parsed with busboy and each part is piped straight
+        to `<output>/<basename>`, so nothing is buffered in memory. Progress is
+        rendered on the receiver's terminal. The response body is empty.
+      security:
+        - uploadToken: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+      responses:
+        '200':
+          description: Transfer complete
+        '400':
+          description: |
+            The body was not `multipart/form-data`, or `Content-Length` did not
+            match the size the token was issued for.
+        '401':
+          description: No `Authorization` header
+        '403':
+          description: The token was issued to a different IP address
+
+components:
+  securitySchemes:
+    uploadToken:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: |
+        The raw token from `createUploadToken`, sent without a scheme prefix.

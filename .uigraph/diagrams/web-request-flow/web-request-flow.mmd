@@ -1,0 +1,16 @@
+flowchart TD
+  cli[netserv web] --> express[Express app]
+  express --> authRouter[/auth router/]
+  express --> staticRouter[SPA static]
+  authRouter --> authController[Auth controller]
+  authController --> jwt[JWT helper]
+  express --> authMiddleware{checkAuthMiddleware}
+  authMiddleware --> jwt
+  authMiddleware -->|authorized| apiRouter[/api router/]
+  authMiddleware -->|authorized| fsStatic[fs static mount]
+  apiRouter --> fsController[FS controller]
+  fsController --> getInfo[getInfo]
+  fsController --> filesystem[(Served directory)]
+  getInfo --> filesystem
+  fsStatic --> filesystem
+  staticRouter --> webBundle[React bundle]

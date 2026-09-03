@@ -1,0 +1,430 @@
+openapi: 3.0.3
+
+info:
+  title: netserv Web API
+  version: 3.0.19
+  description: |
+    HTTP API exposed by `netserv web`, which serves a directory over the local
+    network together with a bundled React UI.
+
+    Route registration order in `server/web/index.ts` determines access control:
+
+    - `/auth/*` and the SPA under `/@` are always reachable.
+    - Everything registered afterwards (`/api/*` and `/fs/*`) sits behind
+      `checkAuthMiddleware`, so those routes return 401 when the server was
+      started with `--password` and no valid `jwt` cookie is presented.
+    - The mutating routes (`renameEntry`, `deleteEntries`, `createFolder`,
+      `uploadFile`) are only registered when the server runs with `--writable`.
+      Without that flag they are not mounted at all and resolve as 404.
+
+    Every `/api/*` route is mounted as a wildcard (`router[method]('*')`), so the
+    remainder of the URL after the route prefix is a URI-encoded filesystem path
+    resolved relative to the served root directory.
+
+servers:
+  - url: http://{host}:{port}
+    description: netserv web server, bound to each detected IPv4 interface
+    variables:
+      host:
+        default: localhost
+      port:
+        default: '8000'
+
+tags:
+  - name: auth
+    description: Session bootstrap and password login
+  - name: filesystem
+    description: Directory listing, file metadata, and mutations
+  - name: content
+    description: Raw file content
+
+paths:
+  /auth/init:
+    get:
+      tags: [auth]
+      operationId: authInit
+      summary: Bootstrap the client session
+      description: |
+        Returns the server capabilities the UI needs before rendering. When
+        authentication is enabled and the incoming `jwt` cookie verifies, the
+        cookie is rotated and the new token is returned; an invalid cookie is
+        cleared and `jwt` comes back as null.
+      responses:
+        '200':
+          description: Server capabilities and the current session token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InitResponse'
+
+  /auth/login:
+    post:
+      tags: [auth]
+      operationId: authLogin
+      summary: Exchange the shared password for a session cookie
+      description: |
+        Only registered when the server was started with `--password`. On success
+        an `httpOnly` `jwt` cookie is set and the same token is echoed in the body.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [password]
+              properties:
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Login accepted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  jwt:
+                    type: string
+          headers:
+            Set-Cookie:
+              description: httpOnly `jwt` cookie valid for one year
+              schema:
+                type: string
+        '400':
+          description: Authentication is disabled, or no password was supplied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Incorrect password
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/dir/{path}:
+    get:
+      tags: [filesystem]
+      operationId: getDirectory
+      summary: List a directory
+      description: |
+        Returns the directory listing with its immediate children split into
+        `childDirs` and `childFiles`. Entries beginning with `$RECYCLE.BIN` are
+        skipped. `dir` is null when the path does not exist or is not a directory.
+      parameters:
+        - $ref: '#/components/parameters/FsPath'
+      security:
+        - jwtCookie: []
+      responses:
+        '200':
+          description: Directory listing
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  dir:
+                    nullable: true
+                    allOf:
+                      - $ref: '#/components/schemas/DirInfo'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/file/{path}:
+    get:
+      tags: [filesystem]
+      operationId: getFileInfo
+      summary: Read file metadata
+      description: '`file` is null when the path does not exist or is not a file.'
+      parameters:
+        - $ref: '#/components/parameters/FsPath'
+      security:
+        - jwtCookie: []
+      responses:
+        '200':
+          description: File metadata
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  file:
+                    nullable: true
+                    allOf:
+                      - $ref: '#/components/schemas/FileInfo'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/rename/{path}:
+    post:
+      tags: [filesystem]
+      operationId: renameEntry
+      summary: Rename a file or directory
+      description: |
+        Requires `--writable`. The path identifies the entry to rename; `newName`
+        is applied inside the same parent directory.
+      parameters:
+        - $ref: '#/components/parameters/FsPath'
+      security:
+        - jwtCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [newName]
+              properties:
+                newName:
+                  type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/delete/{path}:
+    post:
+      tags: [filesystem]
+      operationId: deleteEntries
+      summary: Delete files and directories
+      description: |
+        Requires `--writable`. Each name is resolved inside the directory named by
+        the path. Directories are removed recursively; names that do not exist are
+        skipped.
+      parameters:
+        - $ref: '#/components/parameters/FsPath'
+      security:
+        - jwtCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [names]
+              properties:
+                names:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/new-folder/{path}:
+    post:
+      tags: [filesystem]
+      operationId: createFolder
+      summary: Create a directory
+      description: Requires `--writable`. Returns the metadata of the created directory.
+      parameters:
+        - $ref: '#/components/parameters/FsPath'
+      security:
+        - jwtCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+      responses:
+        '200':
+          description: The created directory
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DirEntry'
+        '400':
+          description: Creation failed, for example because the directory already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/upload/{path}:
+    post:
+      tags: [filesystem]
+      operationId: uploadFile
+      summary: Upload a single file
+      description: |
+        Requires `--writable`. The file is buffered in memory by multer and written
+        to `<root>/<path>/<form path>`; missing parent directories are created.
+      parameters:
+        - $ref: '#/components/parameters/FsPath'
+      security:
+        - jwtCookie: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [path, file, force]
+              properties:
+                path:
+                  type: string
+                  description: Destination path relative to the directory in the URL
+                file:
+                  type: string
+                  format: binary
+                force:
+                  type: string
+                  enum: ['true', 'false']
+                  description: When `false`, an existing destination is rejected
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '400':
+          description: The destination already exists and `force` was `false`
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /fs/{path}:
+    get:
+      tags: [content]
+      operationId: downloadFile
+      summary: Download raw file content
+      description: |
+        Static passthrough of the served root directory. Directory indexes are
+        disabled and dotfiles are allowed.
+      parameters:
+        - $ref: '#/components/parameters/FsPath'
+      security:
+        - jwtCookie: []
+      responses:
+        '200':
+          description: File content
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: No such file
+
+components:
+  securitySchemes:
+    jwtCookie:
+      type: apiKey
+      in: cookie
+      name: jwt
+      description: Present only when the server was started with `--password`
+
+  parameters:
+    FsPath:
+      name: path
+      in: path
+      required: true
+      description: |
+        URI-encoded path relative to the served root directory. May contain
+        slashes; the route is a wildcard mount.
+      schema:
+        type: string
+      example: Videos/holiday
+
+  responses:
+    Success:
+      description: Operation completed
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                enum: [true]
+    Unauthorized:
+      description: Missing or invalid `jwt` cookie
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+
+    InitResponse:
+      type: object
+      required: [writable, authEnabled, jwt]
+      properties:
+        writable:
+          type: boolean
+          description: Whether the mutating routes are mounted
+        authEnabled:
+          type: boolean
+          description: Whether the server was started with `--password`
+        jwt:
+          type: string
+          nullable: true
+
+    DirEntry:
+      type: object
+      required: [type, name, createdAt, modifiedAt]
+      properties:
+        type:
+          type: string
+          enum: [dir]
+        name:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        modifiedAt:
+          type: string
+          format: date-time
+
+    FileInfo:
+      type: object
+      required: [type, name, ext, size, createdAt, modifiedAt]
+      properties:
+        type:
+          type: string
+          enum: [file]
+        name:
+          type: string
+        ext:
+          type: string
+        size:
+          type: integer
+          format: int64
+        createdAt:
+          type: string
+          format: date-time
+        modifiedAt:
+          type: string
+          format: date-time
+
+    DirInfo:
+      allOf:
+        - $ref: '#/components/schemas/DirEntry'
+        - type: object
+          required: [childDirs, childFiles]
+          properties:
+            childDirs:
+              type: object
+              additionalProperties:
+                $ref: '#/components/schemas/DirEntry'
+            childFiles:
+              type: object
+              additionalProperties:
+                $ref: '#/components/schemas/FileInfo'

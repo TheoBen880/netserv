@@ -1,0 +1,34 @@
+{
+  "nodes": {
+    "participant-sender": {
+      "name": "netserv send",
+      "data": {
+        "Source": { "type": "Text Input", "value": "server/send/sender.ts" },
+        "Transport": { "type": "Text Input", "value": "axios + form-data" },
+        "Arguments": { "type": "Tag Input", "value": ["host", "port", "target"] }
+      }
+    },
+    "participant-receiver": {
+      "name": "netserv get",
+      "data": {
+        "Source": { "type": "Text Input", "value": "server/get/app.ts" },
+        "Port Discovery": {
+          "type": "Text Input",
+          "value": "portfinder from 8080, one listener per IPv4 interface"
+        },
+        "Token Lifetime": { "type": "Text Input", "value": "3s" },
+        "Token Binds": { "type": "Tag Input", "value": ["caller IP", "byte size"] }
+      }
+    },
+    "participant-disk": {
+      "name": "Output directory",
+      "data": {
+        "Flag": { "type": "Text Input", "value": "--output, defaults to cwd" },
+        "Write Mode": {
+          "type": "Text Input",
+          "value": "Streamed per part, named from the multipart basename"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,136 @@
+{
+  "nodes": {
+    "cli": {
+      "name": "netserv web command",
+      "data": {
+        "Source": { "type": "Text Input", "value": "server/web/index.ts" },
+        "Flags": {
+          "type": "Tag Input",
+          "value": ["password", "host", "port", "qr", "writable"]
+        },
+        "Default Port": { "type": "Number Input", "value": 8000 }
+      }
+    },
+    "express": {
+      "name": "Express application",
+      "data": {
+        "Source": { "type": "Text Input", "value": "server/web/express.ts" },
+        "Middleware": {
+          "type": "Tag Input",
+          "value": ["cors", "morgan", "cookie-parser", "json"]
+        }
+      }
+    },
+    "authRouter": {
+      "name": "Auth router",
+      "data": {
+        "Mount": { "type": "Text Input", "value": "/auth" },
+        "Routes": { "type": "Tag Input", "value": ["GET /init", "POST /login"] },
+        "Protected": { "type": "Boolean Toggle", "value": false }
+      }
+    },
+    "staticRouter": {
+      "name": "SPA static router",
+      "data": {
+        "Mount": { "type": "Text Input", "value": "/@" },
+        "Fallback": { "type": "Text Input", "value": "index.html" }
+      }
+    },
+    "authController": {
+      "name": "Auth controller",
+      "data": {
+        "Source": {
+          "type": "Text Input",
+          "value": "server/web/controller/auth.ts"
+        },
+        "Cookie": { "type": "Text Input", "value": "jwt (httpOnly, 1 year)" }
+      }
+    },
+    "jwt": {
+      "name": "JWT helper",
+      "data": {
+        "Source": { "type": "Text Input", "value": "server/web/jwt.ts" },
+        "Token Lifetime": { "type": "Text Input", "value": "1d" },
+        "Secret": {
+          "type": "Text Input",
+          "value": "Random per process, invalidating tokens on restart"
+        }
+      }
+    },
+    "authMiddleware": {
+      "name": "Auth gate",
+      "type": "shape",
+      "shape": "diamond",
+      "data": {
+        "Applies To": { "type": "Tag Input", "value": ["/api/*", "/fs/*"] },
+        "Bypassed When": {
+          "type": "Text Input",
+          "value": "Server started without --password"
+        }
+      }
+    },
+    "apiRouter": {
+      "name": "API router",
+      "data": {
+        "Mount": { "type": "Text Input", "value": "/api" },
+        "Always Mounted": { "type": "Tag Input", "value": ["dir", "file"] },
+        "Writable Only": {
+          "type": "Tag Input",
+          "value": ["rename", "delete", "new-folder", "upload"]
+        }
+      }
+    },
+    "fsController": {
+      "name": "Filesystem controller",
+      "data": {
+        "Source": {
+          "type": "Text Input",
+          "value": "server/web/controller/fs.ts"
+        },
+        "Upload Storage": { "type": "Text Input", "value": "multer memory" }
+      }
+    },
+    "getInfo": {
+      "name": "Directory inspector",
+      "data": {
+        "Source": { "type": "Text Input", "value": "server/web/getInfo.ts" },
+        "Depth": { "type": "Text Input", "value": "Immediate children only" }
+      }
+    },
+    "fsStatic": {
+      "name": "Raw file mount",
+      "data": {
+        "Mount": { "type": "Text Input", "value": "/fs" },
+        "Index": { "type": "Boolean Toggle", "value": false },
+        "Dotfiles": { "type": "Text Input", "value": "allow" }
+      }
+    },
+    "webBundle": {
+      "name": "React web UI",
+      "data": {
+        "Source": { "type": "Text Input", "value": "web/" },
+        "Build Output": { "type": "Text Input", "value": "dist/web" },
+        "Base": { "type": "Text Input", "value": "/@" }
+      }
+    },
+    "filesystem": {
+      "name": "Served directory",
+      "type": "shape",
+      "shape": "cylinder",
+      "data": {
+        "Resolved From": {
+          "type": "Text Input",
+          "value": "Target Dir argument, defaulting to cwd"
+        },
+        "Writable": {
+          "type": "Text Input",
+          "value": "Only with the --writable flag"
+        }
+      }
+    }
+  },
+  "edges": {
+    "authMiddleware-apiRouter": { "label": "authorized" },
+    "authMiddleware-fsStatic": { "label": "authorized" }
+  }
+}

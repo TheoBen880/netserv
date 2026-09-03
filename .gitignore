@@ -6,3 +6,7 @@ dist
 /start
 netserv.exe
 start-netserv-server.lnk
+
+skills/uigraph/*
+.agents/skills/uigraph/*
+.claude/skills/uigraph

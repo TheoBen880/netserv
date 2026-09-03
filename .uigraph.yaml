@@ -1,0 +1,177 @@
+version: 1
+
+service:
+  name: netserv
+  category: CLI Tool
+  description: >-
+    Command line tool that shares a directory across the local network over HTTP
+    or FTP, serves a React file browser, and moves files directly between two
+    machines with a token-gated peer transfer.
+  repository:
+    provider: github
+    url: https://github.com/TheoBen880/netserv
+  ownership:
+    team: Engineering
+    email: sayadenv@gmail.com
+  labels:
+    - cli
+    - nodejs
+    - typescript
+    - express
+    - react
+    - file-sharing
+
+apis:
+  - name: netserv-web-api
+    type: openapi
+    path: .uigraph/openapi/netserv-web-api.yaml
+  - name: netserv-transfer-api
+    type: openapi
+    path: .uigraph/openapi/netserv-transfer-api.yaml
+
+architectureDiagrams:
+  - name: Web Request Flow
+    path: .uigraph/diagrams/web-request-flow/web-request-flow.mmd
+    contextPath: .uigraph/diagrams/web-request-flow/context.json
+  - name: Peer File Transfer
+    path: .uigraph/diagrams/peer-file-transfer/peer-file-transfer.mmd
+    contextPath: .uigraph/diagrams/peer-file-transfer/context.json
+
+docs:
+  - name: CLI Commands
+    path: .uigraph/docs/cli-commands.md
+    fileType: markdown
+    description: Subcommands, flags, defaults, and binding behaviour of the netserv binary.
+  - name: Web Access Control
+    path: .uigraph/docs/web-access-control.md
+    fileType: markdown
+    description: Which routes the auth gate covers, the JWT session lifecycle, and how --writable changes the surface.
+
+testPacks:
+  - name: Web API Smoke
+    type: smoke
+    testCases:
+      - title: Init reports server capabilities before login
+        type: api
+        order: 1
+        priority: p0
+        apiGroupName: netserv-web-api
+        operationId: authInit
+        expectedStatusCode: 200
+      - title: Login rejects an incorrect password
+        type: api
+        order: 2
+        priority: p0
+        apiGroupName: netserv-web-api
+        operationId: authLogin
+        expectedStatusCode: 401
+      - title: Protected route returns 401 without a session cookie
+        type: api
+        order: 3
+        priority: p0
+        apiGroupName: netserv-web-api
+        operationId: getDirectory
+        expectedStatusCode: 401
+      - title: Directory listing returns immediate children
+        type: api
+        order: 4
+        priority: p1
+        apiGroupName: netserv-web-api
+        operationId: getDirectory
+        expectedStatusCode: 200
+      - title: File metadata returns size and timestamps
+        type: api
+        order: 5
+        priority: p1
+        apiGroupName: netserv-web-api
+        operationId: getFileInfo
+        expectedStatusCode: 200
+      - title: Raw file download streams content
+        type: api
+        order: 6
+        priority: p1
+        apiGroupName: netserv-web-api
+        operationId: downloadFile
+        expectedStatusCode: 200
+      - title: New folder returns the created directory entry
+        type: api
+        order: 7
+        priority: p1
+        apiGroupName: netserv-web-api
+        operationId: createFolder
+        expectedStatusCode: 200
+      - title: Upload writes the file and creates missing parents
+        type: api
+        order: 8
+        priority: p1
+        apiGroupName: netserv-web-api
+        operationId: uploadFile
+        expectedStatusCode: 200
+      - title: Upload rejects an existing destination when force is false
+        type: api
+        order: 9
+        priority: p2
+        apiGroupName: netserv-web-api
+        operationId: uploadFile
+        expectedStatusCode: 400
+      - title: Rename moves the entry within its parent directory
+        type: api
+        order: 10
+        priority: p2
+        apiGroupName: netserv-web-api
+        operationId: renameEntry
+        expectedStatusCode: 200
+      - title: Delete removes files and directories recursively
+        type: api
+        order: 11
+        priority: p2
+        apiGroupName: netserv-web-api
+        operationId: deleteEntries
+        expectedStatusCode: 200
+      - title: Write routes are absent when the server is not writable
+        type: manual
+        order: 12
+        priority: p1
+
+  - name: Peer Transfer Smoke
+    type: smoke
+    testCases:
+      - title: Token issued for the declared payload size
+        type: api
+        order: 1
+        priority: p0
+        apiGroupName: netserv-transfer-api
+        operationId: createUploadToken
+        expectedStatusCode: 200
+      - title: Upload succeeds with a matching token
+        type: api
+        order: 2
+        priority: p0
+        apiGroupName: netserv-transfer-api
+        operationId: uploadStream
+        expectedStatusCode: 200
+      - title: Upload rejected without an Authorization header
+        type: api
+        order: 3
+        priority: p1
+        apiGroupName: netserv-transfer-api
+        operationId: uploadStream
+        expectedStatusCode: 401
+      - title: Upload rejected when Content-Length differs from the token size
+        type: api
+        order: 4
+        priority: p1
+        apiGroupName: netserv-transfer-api
+        operationId: uploadStream
+        expectedStatusCode: 400
+      - title: Upload rejected when the token was issued to another IP
+        type: api
+        order: 5
+        priority: p2
+        apiGroupName: netserv-transfer-api
+        operationId: uploadStream
+        expectedStatusCode: 403
+      - title: Token is refused after its three second lifetime
+        type: manual
+        order: 6
+        priority: p2
