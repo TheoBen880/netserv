@@ -9,7 +9,7 @@ type JWTPayload = {}
 
 export const create = (payload: JWTPayload): string => {
   return jwt.sign({ payload }, JWT_SECRET, {
-    expiresIn: '1d',
+    expiresIn: '1h',
   })
 }
 
