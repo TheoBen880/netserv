@@ -1,0 +1,63 @@
+{
+  "nodes": {
+    "build": {
+      "name": "npm run build",
+      "data": {
+        "Script": { "type": "Text Input", "value": "node ./build.cjs" },
+        "Spawns": { "type": "Text Input", "value": "Every script starting with build-" }
+      }
+    },
+    "clean": {
+      "name": "Delete outputs",
+      "data": {
+        "Deletes": { "type": "Tag Input", "value": ["dist", "dist-web"] }
+      }
+    },
+    "serverBuild": {
+      "name": "Server build",
+      "data": {
+        "Script": { "type": "Text Input", "value": "build-server: tsc -p ./server" },
+        "Emits": { "type": "Text Input", "value": "dist/server" }
+      }
+    },
+    "dist": {
+      "name": "Server bundle",
+      "data": {
+        "Entry": { "type": "Text Input", "value": "dist/server/index.js" }
+      }
+    },
+    "webBuild": {
+      "name": "Web build",
+      "data": {
+        "Script": { "type": "Text Input", "value": "build-web: tsc -p ./web, vite build --emptyOutDir" }
+      }
+    },
+    "distWeb": {
+      "name": "Web static output",
+      "data": {
+        "Served From": { "type": "Text Input", "value": "dist-web by the web server" }
+      }
+    },
+    "bin": {
+      "name": "bin entry",
+      "type": "shape",
+      "shape": "rectangle",
+      "data": {
+        "Bin": { "type": "Text Input", "value": "./dist/server/index.js" }
+      }
+    },
+    "pkg": {
+      "name": "npm package",
+      "data": {
+        "Name": { "type": "Text Input", "value": "netserv" },
+        "Type": { "type": "Text Input", "value": "commonjs" }
+      }
+    },
+    "publish": {
+      "name": "npm publish",
+      "data": {
+        "Registry": { "type": "Text Input", "value": "npmjs.org" }
+      }
+    }
+  }
+}

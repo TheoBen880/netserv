@@ -1,0 +1,93 @@
+{
+  "nodes": {
+    "cmd": {
+      "name": "FTP command",
+      "data": {
+        "Source": { "type": "Text Input", "value": "server/ftp/index.ts" },
+        "Flags": {
+          "type": "Tag Input",
+          "value": ["host", "port", "username", "password", "root"]
+        }
+      }
+    },
+    "srv": {
+      "name": "ftp-srv server",
+      "data": {
+        "Source": { "type": "Text Input", "value": "server/ftp/server.ts" },
+        "Mode": { "type": "Text Input", "value": "Anonymous when no credentials" }
+      }
+    },
+    "client": {
+      "name": "FTP client",
+      "data": {
+        "Protocol": { "type": "Text Input", "value": "ftp://host:port" }
+      }
+    },
+    "started": {
+      "name": "Server started",
+      "type": "shape",
+      "shape": "diamond",
+      "data": {
+        "Failure": { "type": "Text Input", "value": "Removes listeners and closes server" }
+      }
+    },
+    "retry": {
+      "name": "Retry after 1s",
+      "data": {
+        "Loop": { "type": "Text Input", "value": "Restarts per interface until it binds" }
+      }
+    },
+    "login": {
+      "name": "Login event handler",
+      "data": {
+        "Source": { "type": "Text Input", "value": "server/ftp/server.ts" },
+        "Args": { "type": "Tag Input", "value": ["connection", "username", "password"] }
+      }
+    },
+    "anon": {
+      "name": "Credentials configured",
+      "type": "shape",
+      "shape": "diamond",
+      "data": {
+        "Exits When": { "type": "Text Input", "value": "Root directory does not exist" }
+      }
+    },
+    "verify": {
+      "name": "Credential check",
+      "type": "shape",
+      "shape": "diamond",
+      "data": {
+        "Comparison": { "type": "Text Input", "value": "Exact match against configured values" }
+      }
+    },
+    "reject": {
+      "name": "Reject connection",
+      "data": {
+        "Error": { "type": "Text Input", "value": "Invalid username or password" }
+      }
+    },
+    "resolve": {
+      "name": "Resolve served root",
+      "data": {
+        "Resolution": { "type": "Text Input", "value": "path.resolve(config.root || '.')" }
+      }
+    },
+    "root": {
+      "name": "Served directory",
+      "type": "shape",
+      "shape": "cylinder",
+      "data": {
+        "Check": { "type": "Text Input", "value": "Must exist, otherwise process exits" }
+      }
+    }
+  },
+  "edges": {
+    "srv-started": { "label": "listen on host:2221" },
+    "started-retry": { "label": "connect failed" },
+    "started-login": { "label": "ready" },
+    "anon-resolve": { "label": "no" },
+    "anon-verify": { "label": "yes" },
+    "verify-reject": { "label": "mismatch" },
+    "verify-resolve": { "label": "match" }
+  }
+}

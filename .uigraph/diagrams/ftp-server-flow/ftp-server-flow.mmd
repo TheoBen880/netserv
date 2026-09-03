@@ -1,0 +1,12 @@
+flowchart TD
+  cmd[ftp command] --> srv[ftp-srv server]
+  client[FTP client] --> srv
+  srv -->|listen on host:2221| started{Server started}
+  started -->|connect failed| retry[Retry in 1 second]
+  started -->|ready| login{Login event}
+  login --> anon{Credentials configured}
+  anon -->|no| resolve[Resolve served root]
+  anon -->|yes| verify{Check username and password}
+  verify -->|mismatch| reject[Reject connection]
+  verify -->|match| resolve
+  resolve --> root[(Served directory)]

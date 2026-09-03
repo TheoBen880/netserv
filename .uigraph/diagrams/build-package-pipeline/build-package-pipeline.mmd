@@ -1,0 +1,10 @@
+flowchart TD
+  build[npm run build] --> clean[Delete dist and dist-web]
+  clean --> serverBuild[build-server]
+  serverBuild --> dist[dist/server bundle]
+  clean --> webBuild[build-web]
+  webBuild --> distWeb[Web static output]
+  dist --> bin[bin entry]
+  distWeb --> bin
+  bin --> pkg[npm package]
+  pkg --> publish[npm publish]

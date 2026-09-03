@@ -1,0 +1,10 @@
+flowchart TD
+  bin[netserv CLI] --> arg[NoArg dispatch]
+  arg --> web[web command]
+  arg --> ftp[ftp command]
+  arg --> get[get command]
+  arg --> send[send command]
+  web --> webServe[Express on LAN]
+  ftp --> ftpServe[ftp-srv listener]
+  get --> getServer[Upload receiver]
+  send --> sendUpload[Multipart sender]
