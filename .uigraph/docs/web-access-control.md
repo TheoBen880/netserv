@@ -54,7 +54,7 @@ Two properties are worth knowing when operating this:
 
 - The signing secret is regenerated randomly on every process start, so
   restarting the server invalidates every outstanding session.
-- The token itself expires after `1d`, while the cookie is sent with a one-year
+- The token itself expires after `1h`, while the cookie is sent with a one-year
   `maxAge`. The cookie therefore outlives the token it carries; the stale cookie
   is cleared the next time `/auth/init` runs.
 

@@ -31,7 +31,7 @@
     "issue": {
       "name": "Issue session",
       "data": {
-        "Token": { "type": "Text Input", "value": "JWT expiresIn 1d" },
+        "Token": { "type": "Text Input", "value": "JWT expiresIn 1h" },
         "Cookie": { "type": "Text Input", "value": "jwt, httpOnly, maxAge 1 year" }
       }
     },

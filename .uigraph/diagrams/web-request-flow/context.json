@@ -50,7 +50,7 @@
       "name": "JWT helper",
       "data": {
         "Source": { "type": "Text Input", "value": "server/web/jwt.ts" },
-        "Token Lifetime": { "type": "Text Input", "value": "1d" },
+        "Token Lifetime": { "type": "Text Input", "value": "1h" },
         "Secret": {
           "type": "Text Input",
           "value": "Random per process, invalidating tokens on restart"
